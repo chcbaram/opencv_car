@@ -23,6 +23,7 @@
 //#include "highgui.h"
 #include "opencv2/opencv.hpp"
 
+#include "lib_opencv.h"
 
 using namespace openni;
 
@@ -72,6 +73,24 @@ typedef struct
 int Lib_Vision_Debug = 0;
 
 
+
+
+int Lib_Vision_Thre_Red   = RED_THRESHOLD;
+int Lib_Vision_Thre_Bin   = BINARY_THRESHOLD;
+int Lib_Vision_Thre_Label = LABEL_SIZE_THRESHOLD;
+
+int Lib_Vision_Value_Label = 0;
+
+
+int Yew_Red_Max = 100;
+int Yew_Red_Min = 90;
+int Yew_Blue_Max = 100;
+int Yew_Blue_Min = 90;
+
+int Yew_Thre_Max[3] = { 102, 256, 256 };
+int Yew_Thre_Min[3] = { 90 ,   0,   0 };
+
+
 //-- OpenNI 변수 
 //
 VideoStream depth, color;
@@ -92,7 +111,7 @@ cv::Mat MatImage_color;
 
 VideoFrameRef *frame_ptr;	
 VideoFrameRef  frame_depth;
-VideoFrameRef  frame_color;	
+VideoFrameRef  frame_color;
 VideoStream*   streams[] = {&depth, &color};
 
 
@@ -125,6 +144,55 @@ extern int Lib_Motor_PwmLeft;
 extern int Lib_Motor_PwmRight;
 
 
+
+
+void on_yew_max_0( int position )
+{
+	Yew_Thre_Max[0] = position;
+}
+
+void on_yew_max_1( int position )
+{
+	Yew_Thre_Max[1] = position;
+}
+
+void on_yew_max_2( int position )
+{
+	Yew_Thre_Max[2] = position;
+}
+
+void on_yew_min_0( int position )
+{
+	Yew_Thre_Min[0] = position;
+}
+
+void on_yew_min_1( int position )
+{
+	Yew_Thre_Min[1] = position;
+}
+
+void on_yew_min_2( int position )
+{
+	Yew_Thre_Min[2] = position;
+}
+
+
+void switch_callback_bin( int position )
+{
+	Lib_Vision_Thre_Bin = position;
+}
+
+void switch_callback_Label( int position )
+{
+	Lib_Vision_Thre_Label = position;
+}
+
+/*---------------------------------------------------------------------------
+	TITLE : Lib_Vision
+	WORK  :
+	ARG   : void
+	RET   : void
+---------------------------------------------------------------------------*/
 void *Lib_Vision(void *Arg)
 {
 	THREAD_OBJ *pArg = (THREAD_OBJ *)Arg;
@@ -148,6 +216,114 @@ int GetMainBlob(IplImage *imLabel, LabelST *stLabel, int countLabel);
 
 
 
+#if 0
+typedef struct 
+{
+	LabelST stLabel[MAX_LABEL_ID];
+	int  countLabel;
+	char strLine[255];
+
+	int Blob_Start;
+	int Ret_Labeling;
+	int Ret_FindObj;
+
+
+	IplImage *imgImg;	
+	IplImage *imgGreen;	
+	IplImage *imgBlue;	
+	IplImage *imgRed;	
+
+	IplImage *imgBin;
+	IplImage *imgMorph;
+	IplImage *imgLabel;
+
+} VLIB_BLOB_OBJ;
+
+
+
+int VLib_BlobLabeling_Start( VLIB_BLOB_OBJ *BlobObj, IplImage *srcImg )
+{
+
+	BlobObj->imgImg		= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 3);	
+	BlobObj->imgBlue 	= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 1);
+	BlobObj->imgGreen 	= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 1);
+	BlobObj->imgRed		= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 1);
+	BlobObj->imgBin		= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 1);
+	BlobObj->imgMorph 	= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 1);
+	BlobObj->imgLabel 	= cvCreateImage(cvSize(srcImg->width, srcImg->height), 8, 1);
+
+
+	BlobObj->Blobk_Start = 1;
+
+
+	// YCrCb 형태로 변경
+	cvCvtColor(srcImg, BlobObj->imgImg, CV_RGB2YCrCb);
+
+	//√§≥Œ ∫–∏Æ, red color
+	cvSplit(BlobObj->imgImg, BlobObj->imgGreen, BlobObj->imgBlue, BlobObj->imgRed, NULL);
+
+	//RED
+	cvMaxS(BlobObj->imgRed, BlobObj->Lib_Vision_Thre_Red, BlobObj->imgRed);
+	//¿Ã¡¯»≠
+	cvThreshold(imgRed, imgBin, Lib_Vision_Thre_Bin, 255, CV_THRESH_BINARY);
+		
+	// ∆ÿ√¢
+	cvDilate(imgBin, imgMorph, NULL, 3);	// 4
+		
+	// ƒßΩƒ
+	cvErode(imgMorph, imgMorph, NULL, 3);	// 4
+		
+			
+	double M;
+	int x_order;
+	int y_order;
+	double cX, cY;
+	double m00;
+	int binary = 1;
+	int DetectObj = _FALSE;
+	int ObjDistance = 0;
+	int LabelingFlag = 0;
+
+	//Labeling
+	Ret_Labeling = BlobLabeling(imgMorph, imgLabel, BlobObj->stLabel, &BlobObj->countLabel)
+		
+
+	return Ret_Labeling;
+}
+
+
+
+
+
+
+void VLib_BlobLabeling_End( VLIB_BLOB_OBJ *BlobObj )
+{
+	if( BlobObj->Blobk_Start == 1 )
+	{
+		cvReleaseImage(&imgImg);
+		cvReleaseImage(&imgRed);
+		cvReleaseImage(&imgBlue);
+		cvReleaseImage(&imgGreen);
+		cvReleaseImage(&imgBin);
+		cvReleaseImage(&imgMorph);
+		cvReleaseImage(&imgLabel);
+		cvReleaseImage(&imgOut);		
+	}
+
+
+	BlobObj->Blobk_Start = 0;
+}
+#endif
+
+
+
+
+/*---------------------------------------------------------------------------
+	TITLE : Tracking_Color
+	WORK  :
+	ARG   : void
+	RET   : void
+---------------------------------------------------------------------------*/
 int Tracking_Color( THREAD_OBJ *pArg )
 {
 	IplImage *frame = NULL;//NULL « ºˆ.
@@ -159,11 +335,30 @@ int Tracking_Color( THREAD_OBJ *pArg )
 	IplImage *imgMorph = NULL;
 	IplImage *imgLabel   = NULL;
 	IplImage *imgOut   = NULL;
+	IplImage *imgObj   = NULL;
+	IplImage *imgObj_Resize   = NULL;
+
+	IplImage *imgObj_Image = NULL;
+	IplImage *imgObj_Bin   = NULL;
+	IplImage *imgObj_Morph = NULL;
+	IplImage *imgObj_Label = NULL;
+	IplImage *imgObj_Red = NULL;
+	IplImage *imgObj_Blue = NULL;
+	IplImage *imgObj_Green = NULL;
+
 
 	LabelST stLabel[MAX_LABEL_ID];
 	int countLabel;
 	char strLine[255];
 	int  ObjDistance;	
+
+	CvRect obj_box;
+
+
+	LabelST Obj_stLabel[MAX_LABEL_ID];
+	int     Obj_countLabel;
+
+
 
 
 	if( OpenNI_Init() > 0 )
@@ -181,6 +376,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 
 
 	image 		= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 3);
+	//imgObj 		= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 3);
 	
 	imgBlue 	= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 1);
 	imgGreen 	= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 1);
@@ -189,14 +385,14 @@ int Tracking_Color( THREAD_OBJ *pArg )
 	imgMorph 	= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 1);
 	imgLabel 	= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 1);
 	imgOut 		= cvCreateImage(cvSize(IMG_WIDTH,IMG_HEIGHT), 8, 1);
-	
+
+
 	
 	#if USE_SHOW_IMAGE == true
-	cvNamedWindow("Cam",CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("Red",CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("Out",CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("Depth",CV_WINDOW_AUTOSIZE);
-
+	cvNamedWindow("Cam",CV_WINDOW_AUTOSIZE);
 	cvWaitKey(1);
 	#endif
 
@@ -218,21 +414,27 @@ int Tracking_Color( THREAD_OBJ *pArg )
 		// 카메라로 부터 1프레임 이미지를 읽어온다.
 		frame = IplImage_color;
 
+		//imgObj = cvCloneImage(frame);
+		//cvCopy(IplImage_color, imgObj, 0);
+		//imgObj->imageData = IplImage_color->imageData; 
+		//cvCvtColor(frame, imgObj, CV_RGB2RGB);
+		//cvResize( IplImage_color, imgObj );
+
 		// YCrCb 형태로 변경
 		cvCvtColor(frame, image, CV_RGB2YCrCb);
 
 		//√§≥Œ ∫–∏Æ, red color
 		cvSplit(image, imgBlue, imgGreen, imgRed, NULL);
 		//RED
-		cvMaxS(imgRed, RED_THRESHOLD, imgRed);
+		cvMaxS(imgRed, Lib_Vision_Thre_Red, imgRed);
 		//¿Ã¡¯»≠
-		cvThreshold(imgRed, imgBin, BINARY_THRESHOLD, 255, CV_THRESH_BINARY);
+		cvThreshold(imgRed, imgBin, Lib_Vision_Thre_Bin, 255, CV_THRESH_BINARY);
 		
 		// ∆ÿ√¢
-		cvDilate(imgBin, imgMorph, NULL, 4);
+		cvDilate(imgBin, imgMorph, NULL, 3);	// 4
 		
 		// ƒßΩƒ
-		cvErode(imgMorph, imgMorph, NULL, 4);
+		cvErode(imgMorph, imgMorph, NULL, 3);	// 4
 		
 		
 		
@@ -244,19 +446,25 @@ int Tracking_Color( THREAD_OBJ *pArg )
 		int binary = 1;
 		int DetectObj = _FALSE;
 		int ObjDistance = 0;
+		int LabelingFlag = 0;
 
 		//Labeling
-		if(BlobLabeling(imgMorph, imgLabel, stLabel, &countLabel) == _FALSE);
+		if(BlobLabeling(imgMorph, imgLabel, stLabel, &countLabel) == _FALSE)
+		{
+			printf("Fail to Labeling\n");
+		}
 		else
 		{
-			//Tracking - ∞°¿Â ≈©±‚∞° ≈´ Blob æÚ±‚
+			LabelingFlag = 1;
+
+			//Tracking 
 			DetectObj = GetMainBlob(imgLabel, stLabel, countLabel);
 			
 			// 물체의 거리를 구한다.
 			//
 			ObjDistance = GetObjDistance(imgLabel);
 
-			//Tracking - ∏∏‡∆Æ ±∏«œ±‚
+			//Tracking
 			CvMoments moments;
 			cvMoments(imgLabel, &moments, binary);
 			
@@ -291,41 +499,67 @@ int Tracking_Color( THREAD_OBJ *pArg )
 		}
 		
 
-		if( DetectObj == _TRUE && ObjDistance > 0 )
-		{
-			int x_offset;
-			int z_offset;
-			int   M_Speed  = 0;
-			float M_Handle = 0.0;
-
-			x_offset = cX - (IMG_WIDTH/2);
-			z_offset = -(900 - ObjDistance);
-
-			M_Speed = z_offset / 10;
-
-			M_Handle = abs(M_Speed) * (float)x_offset/100.;
-
-
-			Lib_Motor_PwmLeft  = M_Speed + M_Handle;
-			Lib_Motor_PwmRight = M_Speed - M_Handle; 
-
-
-		}
-		else
-		{
-			Lib_Motor_PwmLeft  = 0;
-			Lib_Motor_PwmRight = 0; 
-		}
 		if( DetectObj == _TRUE )
 		{
-
-			cvCircle(frame, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 0, 0), 2);
+			//cvCircle(frame, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 0, 0), 2);
 			cvCircle(imgBin, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 255, 255), 2);
 			cvCircle(imgRed, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 255, 255), 2);
-			cvCircle(IplImage_depth, cvPoint(cvRound(cX*1.06), cvRound(cY*1.04)), 20, CV_RGB(255, 255, 255), 2);
+			//cvCircle(IplImage_depth, cvPoint(cvRound(cX*1.06), cvRound(cY*1.04)), 20, CV_RGB(255, 255, 255), 2);
 
 			sprintf( strLine, "%d mm", ObjDistance );
 			cvPutText(frame, strLine, cvPoint(220, 20), &font, cvScalar(0, 0, 255, 0));
+
+			//-- Draw object
+			obj_box = VLib_GetOpejectRect( imgLabel, cX, cY );
+
+
+    		//cvSetImageROI(imgObj, obj_box);
+    		cvSetImageROI(frame, obj_box);
+ 
+ 			imgObj_Resize = cvCreateImage(cvSize(obj_box.width,obj_box.height), 8, 3);
+ 			cvCopy(frame, imgObj_Resize);
+
+ 			cvResetImageROI(frame);
+
+
+			imgObj = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 3);
+			cvResize( imgObj_Resize, imgObj );
+
+			cvReleaseImage(&imgObj_Resize);
+
+
+			// Yellow
+			imgObj_Image = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 3);
+			imgObj_Bin   = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
+			imgObj_Morph = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
+			imgObj_Label = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
+			imgObj_Red   = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
+			imgObj_Green = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
+			imgObj_Blue  = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
+
+
+			// YCrCb 형태로 변경
+			cvCvtColor(imgObj, imgObj_Image, CV_RGB2HSV);
+
+			cvInRangeS( imgObj_Image, 
+				cvScalar(Yew_Thre_Min[0], Yew_Thre_Min[1], Yew_Thre_Min[2]),
+				cvScalar(Yew_Thre_Max[0], Yew_Thre_Max[1], Yew_Thre_Max[2]), imgObj_Bin);
+
+
+
+			cvRectangle(frame, 
+					cvPoint(obj_box.x, obj_box.y), 
+					cvPoint(obj_box.x+obj_box.width, obj_box.y+obj_box.height),
+                    CV_RGB(0, 0, 255), 2);	
+
+			cvRectangle(IplImage_depth, 
+					cvPoint(obj_box.x, obj_box.y), 
+					cvPoint(obj_box.x+obj_box.width, obj_box.y+obj_box.height),
+                    CV_RGB(0, 0, 255), 2);
+
+
+			//sprintf( strLine, "x,y %d %d", imgObj->width, imgObj->height );
+			//cvPutText(frame, strLine, cvPoint(10, 50), &font, cvScalar(0, 0, 255, 0));
 		}
 		else
 		{
@@ -335,16 +569,43 @@ int Tracking_Color( THREAD_OBJ *pArg )
 			cvPutText(frame, "No Red", cvPoint(220, 20), &font, cvScalar(0, 0, 255, 0));			
 		}
 
+		if( LabelingFlag == 1 )
+		{
+			sprintf( strLine, "Label %d", Lib_Vision_Value_Label );
+			cvPutText(frame, strLine, cvPoint(10, 20), &font, cvScalar(0, 0, 255, 0));
+		}
 
-		cvCanny( IplImage_depth, imgOut, 5, 100, 3 );
+		//-- Show Slide
+		//
+		cvCreateTrackbar( "Bin", "Red", &Lib_Vision_Thre_Bin, 255, switch_callback_bin );
+		cvCreateTrackbar( "Label", "Out", &Lib_Vision_Thre_Label, 10000, switch_callback_Label );
+
+		cvCreateTrackbar( "Yew_Max_0", "Cam", &Yew_Thre_Max[0], 256, on_yew_max_0 );
+		cvCreateTrackbar( "Yew_Min_0", "Cam", &Yew_Thre_Min[0], 256, on_yew_min_0 );
+		cvCreateTrackbar( "Yew_Max_1", "Cam", &Yew_Thre_Max[1], 256, on_yew_max_1 );
+		cvCreateTrackbar( "Yew_Min_1", "Cam", &Yew_Thre_Min[1], 256, on_yew_min_1 );
+		cvCreateTrackbar( "Yew_Max_2", "Cam", &Yew_Thre_Max[2], 256, on_yew_max_2 );
+		cvCreateTrackbar( "Yew_Min_2", "Cam", &Yew_Thre_Min[2], 256, on_yew_min_2 );
+
+
+		//cvCanny( IplImage_depth, imgOut, 5, 100, 3 );
 
 		#if USE_SHOW_IMAGE == true
-		cvShowImage("Cam", frame);
+		
 		//cvShowImage("Red", imgRed);
 		cvShowImage("Out", imgBin);
-		cvShowImage("Depth", IplImage_depth);		
+		//cvShowImage("Depth", IplImage_depth);		
+		cvShowImage("Red", imgObj);
+		cvShowImage("Depth", imgObj_Bin);
+		cvShowImage("Cam", frame);
 		cvWaitKey(1);
 		#endif
+
+
+
+
+
+
 		
 		#if 0
 		// RGB 값 구하기
@@ -413,7 +674,18 @@ int Tracking_Color( THREAD_OBJ *pArg )
 		start_point = clock();
 
 
-	
+		if( imgObj != NULL )	cvReleaseImage(&imgObj);
+
+		if( DetectObj == TRUE )
+		{
+			cvReleaseImage(&imgObj_Image);
+			cvReleaseImage(&imgObj_Bin);
+			cvReleaseImage(&imgObj_Morph);
+			cvReleaseImage(&imgObj_Label);
+			cvReleaseImage(&imgObj_Red);
+			cvReleaseImage(&imgObj_Green);
+			cvReleaseImage(&imgObj_Blue);
+		}
 		
 	}
 	
@@ -435,7 +707,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 	cvReleaseImage(&imgMorph);
 	cvReleaseImage(&imgLabel);
 	cvReleaseImage(&imgOut);
-
+	//cvReleaseImage(&imgObj);
 	
 
 	OpenNI_Close();
@@ -445,6 +717,13 @@ int Tracking_Color( THREAD_OBJ *pArg )
 
 
 
+
+/*---------------------------------------------------------------------------
+	TITLE : BlobLabeling
+	WORK  :
+	ARG   : void
+	RET   : void
+---------------------------------------------------------------------------*/
 int BlobLabeling(IplImage *imSRC, IplImage *imLabel, LabelST *stLabel, int *pCountLabel)
 {
 	int ix, iy, ig;
@@ -581,8 +860,10 @@ int BlobLabeling(IplImage *imSRC, IplImage *imLabel, LabelST *stLabel, int *pCou
 		if(arNumBuf[ig] != 0)
 		{
 			stLabel[countLabel].id       = ig;
-			stLabel[countLabel].numPixel = arNumBuf[ig];
+			stLabel[countLabel].numPixel = arNumBuf[ig];			
 			countLabel++;
+
+			if( countLabel >= MAX_LABEL_ID ) break;
 		}
 	}
 	
@@ -630,6 +911,13 @@ int BlobLabeling(IplImage *imSRC, IplImage *imLabel, LabelST *stLabel, int *pCou
 
 
 
+
+/*---------------------------------------------------------------------------
+	TITLE : BlobLabeling
+	WORK  :
+	ARG   : void
+	RET   : void
+---------------------------------------------------------------------------*/
 int GetMainBlob(IplImage *imLabel, LabelST *stLabel, int countLabel)
 {
 	int ix, iy, ig;
@@ -639,7 +927,8 @@ int GetMainBlob(IplImage *imLabel, LabelST *stLabel, int countLabel)
 	int yOff;
 	int max = 0;
 	int mainID;
-	
+	int count;
+
 	width = IMG_WIDTH;
 	height = IMG_HEIGHT;
 	
@@ -661,21 +950,27 @@ int GetMainBlob(IplImage *imLabel, LabelST *stLabel, int countLabel)
 		}
 	}
 	
+	count = 0;
+
 	for(iy=0; iy<height; iy++)
 	{
 		yOff = iy*width;
 		for(ix=0; ix<width; ix++)
 		{
 			if(pLabel[yOff + ix] == mainID)
+			{
 				pLabel[yOff + ix] = 255;
+				count++;
+			}
 			else
 				pLabel[yOff + ix] = 0;
 		}
 	}
 	
 
-	if( max > LABEL_SIZE_THRESHOLD )
+	if( count > Lib_Vision_Thre_Label )
 	{
+		Lib_Vision_Value_Label = count;
 		return _TRUE;
 	}
 	else
@@ -918,6 +1213,8 @@ int OpenNI_Capture( THREAD_OBJ *pArg )
 			CapturedFlag = 0;
 			//Sleep(200);	
 
+			//depth.GetAlternativeViewPointCap().SetViewPoint(frame_depth); 
+			
 			end_point_frame = clock();
 			process_time_frame = ((double)(end_point_frame - start_point_frame)/(CLOCKS_PER_SEC/1000));
 
@@ -988,6 +1285,13 @@ int OpenNI_Init(void)
 
 	device.setDepthColorSyncEnabled(true);
 
+	//--
+	rc = device.setImageRegistrationMode(openni::IMAGE_REGISTRATION_DEPTH_TO_COLOR );
+	if (rc != STATUS_OK)
+	{
+		printf("RegMode Fail\n");
+	}
+
 
 	//-- Start 
 	//
@@ -998,6 +1302,8 @@ int OpenNI_Init(void)
     depth.setVideoMode(mode_depth);
     depth.setMirroringEnabled(false);
       
+ 	//depth.GetAlternativeViewPointCap().SetViewPoint(frame_depth);
+ 	     
 	rc = depth.start();
 	if (rc != STATUS_OK)
 	{
@@ -1022,8 +1328,8 @@ int OpenNI_Init(void)
 	
 
 
-	IplImage_depth = cvCreateImage(cvSize(DEPTH_IMG_WIDTH,DEPTH_IMG_HEIGHT), IPL_DEPTH_8U, 1);
-	IplImage_color = cvCreateImage(cvSize(COLOR_IMG_WIDTH,COLOR_IMG_HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage_depth 		= cvCreateImage(cvSize(DEPTH_IMG_WIDTH,DEPTH_IMG_HEIGHT), IPL_DEPTH_8U, 1);
+	IplImage_color 		= cvCreateImage(cvSize(COLOR_IMG_WIDTH,COLOR_IMG_HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage_depth_resize = cvCreateImage(cvSize(DEPTH_IMG_WIDTH/2,DEPTH_IMG_HEIGHT/2), IPL_DEPTH_8U, 1);
 	IplImage_color_resize = cvCreateImage(cvSize(COLOR_IMG_WIDTH/2,COLOR_IMG_HEIGHT/2), IPL_DEPTH_8U, 3);
 
@@ -1051,7 +1357,7 @@ int OpenNI_Close(void)
 	// OpenCV 종료
 	//
 	cvReleaseImage(&IplImage_depth);
-	cvReleaseImage(&IplImage_color);	
+	cvReleaseImage(&IplImage_color);
 	cvReleaseImage(&IplImage_depth_resize);
 	cvReleaseImage(&IplImage_color_resize);
 	return 0;
@@ -1061,39 +1367,4 @@ int OpenNI_Close(void)
 
 
 
-#if 0
-void calculateHistogram(float* pHistogram, int histogramSize, const openni::VideoFrameRef& frame)
-{
-	const openni::DepthPixel* pDepth = (const openni::DepthPixel*)frame.getData();
-	// Calculate the accumulative histogram (the yellow display...)
-	memset(pHistogram, 0, histogramSize*sizeof(float));
-	int restOfRow = frame.getStrideInBytes() / sizeof(openni::DepthPixel) - frame.getWidth();
-	int height = frame.getHeight();
-	int width = frame.getWidth();
 
-	unsigned int nNumberOfPoints = 0;
-	for (int y = 0; y < height; ++y)
-	{
-		for (int x = 0; x < width; ++x, ++pDepth)
-		{
-			if (*pDepth != 0)
-			{
-				pHistogram[*pDepth]++;
-				nNumberOfPoints++;
-			}
-		}
-		pDepth += restOfRow;
-	}
-	for (int nIndex=1; nIndex<histogramSize; nIndex++)
-	{
-		pHistogram[nIndex] += pHistogram[nIndex-1];
-	}
-	if (nNumberOfPoints)
-	{
-		for (int nIndex=1; nIndex<histogramSize; nIndex++)
-		{
-			pHistogram[nIndex] = (256 * (1.0f - (pHistogram[nIndex] / nNumberOfPoints)));
-		}
-	}
-}
-#endif

@@ -1,6 +1,6 @@
-Bin/Intermediate/x64-Release/OpenCV/Lib_Vision.d Bin/Intermediate/x64-Release/OpenCV/Lib_Vision.o: \
- Lib_Vision.cpp /usr/include/stdio.h /usr/include/features.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
+Bin/Intermediate/x64-Release/OpenCV/lib_opencv.d Bin/Intermediate/x64-Release/OpenCV/lib_opencv.o: \
+ lib_vision/lib_opencv.cpp lib_vision/lib_opencv.h /usr/include/stdio.h \
+ /usr/include/features.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -50,13 +50,10 @@ Bin/Intermediate/x64-Release/OpenCV/Lib_Vision.d Bin/Intermediate/x64-Release/Op
  /home/baram/OpenNI/Include/OniCTypes.h \
  /home/baram/OpenNI/Include/OniCEnums.h \
  /home/baram/OpenNI/Include/OniCProperties.h \
- /home/baram/OpenNI/Include/OniVersion.h OniSampleUtilities.h \
- /usr/include/termios.h /usr/include/x86_64-linux-gnu/bits/termios.h \
+ /home/baram/OpenNI/Include/OniVersion.h /usr/include/termios.h \
+ /usr/include/x86_64-linux-gnu/bits/termios.h \
  /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
- /usr/include/x86_64-linux-gnu/bits/timex.h main.h Main_Lib/Define.h \
- Main_Lib/Thread_Lib.h Main_Lib/Define.h /usr/include/pthread.h \
- /usr/include/sched.h /usr/include/x86_64-linux-gnu/bits/sched.h \
- /usr/include/x86_64-linux-gnu/bits/setjmp.h \
+ /usr/include/x86_64-linux-gnu/bits/timex.h \
  /usr/include/opencv2/opencv.hpp /usr/include/opencv2/core/core_c.h \
  /usr/include/opencv2/core/types_c.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.6/include/float.h \
@@ -111,6 +108,9 @@ Bin/Intermediate/x64-Release/OpenCV/Lib_Vision.d Bin/Intermediate/x64-Release/Op
  /usr/include/c++/4.6/ext/atomicity.h \
  /usr/include/c++/4.6/x86_64-linux-gnu/./bits/gthr.h \
  /usr/include/c++/4.6/x86_64-linux-gnu/./bits/gthr-default.h \
+ /usr/include/pthread.h /usr/include/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/setjmp.h \
  /usr/include/c++/4.6/x86_64-linux-gnu/./bits/atomic_word.h \
  /usr/include/c++/4.6/bits/locale_classes.h /usr/include/c++/4.6/string \
  /usr/include/c++/4.6/bits/allocator.h \
@@ -169,7 +169,9 @@ Bin/Intermediate/x64-Release/OpenCV/Lib_Vision.d Bin/Intermediate/x64-Release/Op
  /usr/include/c++/4.6/bits/gslice.h \
  /usr/include/c++/4.6/bits/gslice_array.h \
  /usr/include/c++/4.6/bits/mask_array.h \
- /usr/include/c++/4.6/bits/indirect_array.h lib_vision/lib_opencv.h
+ /usr/include/c++/4.6/bits/indirect_array.h
+
+lib_vision/lib_opencv.h:
 
 /usr/include/stdio.h:
 
@@ -303,8 +305,6 @@ Bin/Intermediate/x64-Release/OpenCV/Lib_Vision.d Bin/Intermediate/x64-Release/Op
 
 /home/baram/OpenNI/Include/OniVersion.h:
 
-OniSampleUtilities.h:
-
 /usr/include/termios.h:
 
 /usr/include/x86_64-linux-gnu/bits/termios.h:
@@ -312,22 +312,6 @@ OniSampleUtilities.h:
 /usr/include/x86_64-linux-gnu/sys/ttydefaults.h:
 
 /usr/include/x86_64-linux-gnu/bits/timex.h:
-
-main.h:
-
-Main_Lib/Define.h:
-
-Main_Lib/Thread_Lib.h:
-
-Main_Lib/Define.h:
-
-/usr/include/pthread.h:
-
-/usr/include/sched.h:
-
-/usr/include/x86_64-linux-gnu/bits/sched.h:
-
-/usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/opencv2/opencv.hpp:
 
@@ -468,6 +452,14 @@ Main_Lib/Define.h:
 /usr/include/c++/4.6/x86_64-linux-gnu/./bits/gthr.h:
 
 /usr/include/c++/4.6/x86_64-linux-gnu/./bits/gthr-default.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/x86_64-linux-gnu/bits/sched.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/c++/4.6/x86_64-linux-gnu/./bits/atomic_word.h:
 
@@ -612,5 +604,3 @@ Main_Lib/Define.h:
 /usr/include/c++/4.6/bits/mask_array.h:
 
 /usr/include/c++/4.6/bits/indirect_array.h:
-
-lib_vision/lib_opencv.h:

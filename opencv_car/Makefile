@@ -3,10 +3,12 @@ include CommonDefs.mak
 BIN_DIR = Bin
 
 INC_DIRS = \
-	../../Include \
-	../Common
+	../../Include 	\
+	../Common 		\
+	./lib_vision
 
-SRC_FILES = *.cpp 
+
+SRC_FILES = *.cpp ./lib_vision/*.cpp
 
 USED_LIBS += OpenNI2
 #USED_LIBS += opencv_core opencv_imgproc opencv_highgui opencv_objdetect
