@@ -22,7 +22,7 @@
 #include "./Main_Lib/Define.h"
 
 
-#define IMG_SIZE_RATIO		2
+#define IMG_SIZE_RATIO		1
 
 #define IMG_WIDTH			(320*IMG_SIZE_RATIO)		
 #define IMG_HEIGHT			(240*IMG_SIZE_RATIO)		
