@@ -45,14 +45,14 @@ clock_t end_point_frame;
 #define _DEBUG_LABELING_		0
 
 
-#define MAX_LABEL_ID      		254
+#define MAX_LABEL_ID      		255	// 254
 
 #define _FALSE 0
 #define _TRUE  1
 
-#define BINARY_THRESHOLD		155
+#define BINARY_THRESHOLD		150
 #define RED_THRESHOLD	    	80
-#define LABEL_SIZE_THRESHOLD	20
+#define LABEL_SIZE_THRESHOLD	800
 
 
 
@@ -89,6 +89,10 @@ int Yew_Blue_Min = 90;
 
 int Yew_Thre_Max[3] = { 102, 256, 256 };
 int Yew_Thre_Min[3] = { 90 ,   0,   0 };
+
+
+
+
 
 
 //-- OpenNI 변수 
@@ -144,48 +148,15 @@ extern int Lib_Motor_PwmLeft;
 extern int Lib_Motor_PwmRight;
 
 
+int Lib_Vision_CarDetected = FALSE;
 
 
-void on_yew_max_0( int position )
-{
-	Yew_Thre_Max[0] = position;
-}
-
-void on_yew_max_1( int position )
-{
-	Yew_Thre_Max[1] = position;
-}
-
-void on_yew_max_2( int position )
-{
-	Yew_Thre_Max[2] = position;
-}
-
-void on_yew_min_0( int position )
-{
-	Yew_Thre_Min[0] = position;
-}
-
-void on_yew_min_1( int position )
-{
-	Yew_Thre_Min[1] = position;
-}
-
-void on_yew_min_2( int position )
-{
-	Yew_Thre_Min[2] = position;
-}
+CvRect CarDetectRect;
 
 
-void switch_callback_bin( int position )
-{
-	Lib_Vision_Thre_Bin = position;
-}
 
-void switch_callback_Label( int position )
-{
-	Lib_Vision_Thre_Label = position;
-}
+
+
 
 /*---------------------------------------------------------------------------
 	TITLE : Lib_Vision
@@ -318,6 +289,38 @@ void VLib_BlobLabeling_End( VLIB_BLOB_OBJ *BlobObj )
 
 
 
+
+/*---------------------------------------------------------------------------
+	TITLE : Lib_Vision_GetCarDetected
+	WORK  :
+	ARG   : void
+	RET   : void
+---------------------------------------------------------------------------*/
+int Lib_Vision_GetCarDetected( CvRect *pCar, CvRect *pArea )
+{
+	int Ret = FALSE;
+
+	int  Car_y;
+	int  Car_height;
+
+	Car_y       = pCar->y + pCar->height - pCar->height / 4;
+	Car_height  = pCar->height / 4;
+
+
+	if( pCar->x > pArea->x && (pCar->x+pCar->width) < (pArea->x+pArea->width) )
+	{
+		if( Car_y > pArea->y && (Car_y+Car_height) < (pArea->y+pArea->height) )
+		{
+			Ret = TRUE;
+		}
+	}
+
+
+	return Ret;
+}
+
+
+
 /*---------------------------------------------------------------------------
 	TITLE : Tracking_Color
 	WORK  :
@@ -403,6 +406,17 @@ int Tracking_Color( THREAD_OBJ *pArg )
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5);
     
 	
+	int DetectX 		= IMG_WIDTH/2;
+	int DetectY 		= IMG_HEIGHT/2 + 150;
+	int DetectWidth		= 200;
+	int DetectHeight	= 100;
+
+	CarDetectRect.x      = DetectX - DetectWidth/2;
+	CarDetectRect.width  = DetectWidth;
+	CarDetectRect.y      = DetectY - DetectHeight/2;
+	CarDetectRect.height = DetectHeight;
+
+
 
 	while ( pArg->Thread_Stop == FALSE )
 	{
@@ -448,6 +462,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 		int ObjDistance = 0;
 		int LabelingFlag = 0;
 
+#if 1
 		//Labeling
 		if(BlobLabeling(imgMorph, imgLabel, stLabel, &countLabel) == _FALSE)
 		{
@@ -455,6 +470,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 		}
 		else
 		{
+			
 			LabelingFlag = 1;
 
 			//Tracking 
@@ -496,9 +512,10 @@ int Tracking_Color( THREAD_OBJ *pArg )
 			
 			cX = cX / m00;
 			cY = cY / m00;
+			
 		}
 		
-
+#endif
 		if( DetectObj == _TRUE )
 		{
 			//cvCircle(frame, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 0, 0), 2);
@@ -526,6 +543,10 @@ int Tracking_Color( THREAD_OBJ *pArg )
 			cvResize( imgObj_Resize, imgObj );
 
 			cvReleaseImage(&imgObj_Resize);
+
+
+
+			Lib_Vision_CarDetected = Lib_Vision_GetCarDetected( &obj_box, &CarDetectRect );
 
 
 			// Yellow
@@ -566,8 +587,15 @@ int Tracking_Color( THREAD_OBJ *pArg )
 			cX = 0;
 			cY = 0;
 
-			cvPutText(frame, "No Red", cvPoint(220, 20), &font, cvScalar(0, 0, 255, 0));			
+			cvPutText(frame, "No Red", cvPoint(220, 20), &font, cvScalar(0, 0, 255, 0));
+			Lib_Vision_CarDetected = FALSE;			
 		}
+
+		cvRectangle(frame, 
+			cvPoint(CarDetectRect.x, CarDetectRect.y), 
+			cvPoint(CarDetectRect.x+CarDetectRect.width, CarDetectRect.y+CarDetectRect.height),
+                    CV_RGB(0, 255, 0), 2);
+
 
 		if( LabelingFlag == 1 )
 		{
@@ -577,15 +605,15 @@ int Tracking_Color( THREAD_OBJ *pArg )
 
 		//-- Show Slide
 		//
-		cvCreateTrackbar( "Bin", "Red", &Lib_Vision_Thre_Bin, 255, switch_callback_bin );
-		cvCreateTrackbar( "Label", "Out", &Lib_Vision_Thre_Label, 10000, switch_callback_Label );
+		cvCreateTrackbar( "Bin", "Out", &Lib_Vision_Thre_Bin, 255, NULL );
+		cvCreateTrackbar( "Label", "Out", &Lib_Vision_Thre_Label, 10000, NULL );
 
-		cvCreateTrackbar( "Yew_Max_0", "Cam", &Yew_Thre_Max[0], 256, on_yew_max_0 );
-		cvCreateTrackbar( "Yew_Min_0", "Cam", &Yew_Thre_Min[0], 256, on_yew_min_0 );
-		cvCreateTrackbar( "Yew_Max_1", "Cam", &Yew_Thre_Max[1], 256, on_yew_max_1 );
-		cvCreateTrackbar( "Yew_Min_1", "Cam", &Yew_Thre_Min[1], 256, on_yew_min_1 );
-		cvCreateTrackbar( "Yew_Max_2", "Cam", &Yew_Thre_Max[2], 256, on_yew_max_2 );
-		cvCreateTrackbar( "Yew_Min_2", "Cam", &Yew_Thre_Min[2], 256, on_yew_min_2 );
+		cvCreateTrackbar( "Yew_Max_0", "Cam", &Yew_Thre_Max[0], 256, NULL );
+		cvCreateTrackbar( "Yew_Min_0", "Cam", &Yew_Thre_Min[0], 256, NULL );
+		cvCreateTrackbar( "Yew_Max_1", "Cam", &Yew_Thre_Max[1], 256, NULL );
+		cvCreateTrackbar( "Yew_Min_1", "Cam", &Yew_Thre_Min[1], 256, NULL );
+		cvCreateTrackbar( "Yew_Max_2", "Cam", &Yew_Thre_Max[2], 256, NULL );
+		cvCreateTrackbar( "Yew_Min_2", "Cam", &Yew_Thre_Min[2], 256, NULL );
 
 
 		//cvCanny( IplImage_depth, imgOut, 5, 100, 3 );
@@ -727,7 +755,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 int BlobLabeling(IplImage *imSRC, IplImage *imLabel, LabelST *stLabel, int *pCountLabel)
 {
 	int ix, iy, ig;
-	int arNumBuf[MAX_LABEL_ID] = {0, };
+	int arNumBuf[256] = {0, };
 	int groupBuf[9] = { 0, };
 	int minLabel;
 	int maxLabel;

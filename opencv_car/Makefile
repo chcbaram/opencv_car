@@ -8,13 +8,16 @@ INC_DIRS = \
 	./lib_vision
 
 
-SRC_FILES = *.cpp ./lib_vision/*.cpp
+SRC_FILES = main.cpp \
+			Lib_Vision.cpp \
+			Lib_Control.cpp \
+			./lib_vision/*.cpp
 
 USED_LIBS += OpenNI2
-#USED_LIBS += opencv_core opencv_imgproc opencv_highgui opencv_objdetect
+USED_LIBS += opencv_core opencv_imgproc opencv_highgui opencv_objdetect
 USED_LIBS += pthread rt
 
-USER_LIBS  = `pkg-config --libs opencv`
+#USER_LIBS  = `pkg-config --libs opencv`
 LDFLAGS += $(USER_LIBS)
 
 EXE_NAME = OpenCV

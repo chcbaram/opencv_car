@@ -28,13 +28,14 @@
 
 #include "opencv2/opencv.hpp"
 
+extern void *Lib_Control(void *Arg);
 extern void *Lib_Vision(void *Arg);
 
 int Main_Init();
 
 
 extern int Lib_Vision_Debug;
-
+extern int Lib_Control_Enable;
 
 
 
@@ -47,6 +48,8 @@ int main()
 
 	printf("OpenCV Car Ver 1.0\n");
 
+
+	Thread_Create( 0, Lib_Control, NULL  );
 	Thread_Create( 1, Lib_Vision, NULL  );
 
 
@@ -56,6 +59,8 @@ int main()
 
 	KeyBrd_Init();
 
+
+	Thread_Start(0);
 	Thread_Start(1);
 
 	while(1)
@@ -67,14 +72,10 @@ int main()
 			if( Key_Data == 'q' ) break;
 
 
+			if( Key_Data == '1' )	Lib_Control_Enable ^= 1;
 			if( Key_Data == '2' )	Lib_Vision_Debug ^= 1;
 			
 
-			
-			if( Key_Data == 'w' )
-			{
-				
-			}
 
 			printf("KeyPressed\n");
 		}		
