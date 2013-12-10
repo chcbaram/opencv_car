@@ -441,7 +441,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 	int DetectX 		= IMG_WIDTH/2;
 	int DetectY 		= IMG_HEIGHT/2;
 	int DetectWidth		= 200;
-	int DetectHeight	= 100/2;
+	int DetectHeight	= 70;
 
 	CarDetectRect.x      = DetectX - DetectWidth/2;
 	CarDetectRect.width  = DetectWidth;

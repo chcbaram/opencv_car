@@ -7,6 +7,8 @@
 #include <time.h>
 
 
+#define USE_SERIAL_SIGANL	0
+#define USE_SERIAL			1
 
 
 #include "./Main_Lib/Define.h"
@@ -44,9 +46,10 @@ void *Lib_Control(void *Arg)
 
 	THREAD_OBJ *pArg = (THREAD_OBJ *)Arg;
 
-/*
+
+	#if USE_SERIAL == 1
 	//-- 시리얼 통신 초기화 
-	Uart_Handle_Ptr = Uart_Open( COM_USB1, BAUD_115200 );
+	Uart_Handle_Ptr = Uart_Open( 0, "/dev/rfcomm1", BAUD_115200 );
 
 	if( Uart_Handle_Ptr < 0 )
 	{
@@ -55,9 +58,9 @@ void *Lib_Control(void *Arg)
 		return (void *)&(pArg->Thread_Ret);	
 	}
 
-	Uart_Sig_Init( Uart_Handle_Ptr );
-	Uart_Sig_Func_Init( Uart_Handle_Ptr, Lib_Control_Uart_Rxd_Func );
-*/
+	//Uart_Sig_Init( Uart_Handle_Ptr );
+	//Uart_Sig_Func_Init( Uart_Handle_Ptr, Lib_Control_Uart_Rxd_Func );
+	#endif
 
 	printf("Enter Control Thread \n");
 
@@ -92,17 +95,23 @@ void *Lib_Control(void *Arg)
 
 				Lib_Control_Cnt++;
 
-				if( Lib_Control_Cnt > (50) )
+				if( Lib_Control_Cnt > (60) )
 				{
 					if( Lib_Vision_LedCnt > 40 )
 					{
 						Lib_Control_State = 2;
 						printf("Left..\n");
+						#if USE_SERIAL == 1
+						Uart_Print(0, "B");
+						#endif
 					}
 					else
 					{
 						Lib_Control_State = 2;
-						printf("Go..\n");	
+						printf("Go..\n");
+						#if USE_SERIAL == 1
+						Uart_Print(0, "A");
+						#endif	
 					}
 				}
 				break;

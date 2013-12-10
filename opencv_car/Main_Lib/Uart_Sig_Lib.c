@@ -84,7 +84,7 @@ void Uart_Q_Sig_Handler( int Status )
 	int i;
 
 	
-	Receive_Size = read( Uart_Handle, Uart_Buf, 255 );
+	Receive_Size = read( Uart_Handle[0], Uart_Buf, 255 );
 
 	if( Receive_Size > 0 )   // 데이터를 받았다면?
 	{
@@ -112,7 +112,7 @@ void Uart_Q_Sig_Func_Handler( int Status )
 	int i;
 
 	
-	Receive_Size = read( Uart_Handle, Uart_Buf, 255 );
+	Receive_Size = read( Uart_Handle[0], Uart_Buf, 255 );
 
 	if( Receive_Size > 0 )   // 데이터를 받았다면?
 	{

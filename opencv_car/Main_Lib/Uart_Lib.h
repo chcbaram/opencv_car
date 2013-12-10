@@ -50,7 +50,7 @@
 volatile  int  STOP = FALSE;
                                                                                                  
                                                                                                  
-int Uart_Handle;   // 시리얼 포트 핸들
+int Uart_Handle[10];   // 시리얼 포트 핸들
 
                                                                                                  
 struct termios     Term_OldIo;
@@ -77,9 +77,8 @@ int    Uart_ModeFlag;   // 표준 모드인지, 비표준인지 설정
 
 //----- 함수 재정의 
 //                                                                   
-#define Uart_Open(PortNum,BaudData)    Uart_OpenPortNonCanonical_Mode(PortNum,BaudData)                                                                                                                                                                                         
 
-void Uart_Close( void );
+void Uart_Close( int Ch );
 
 
 #endif
