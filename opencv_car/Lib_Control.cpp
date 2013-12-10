@@ -22,10 +22,12 @@
 int Lib_Control_Enable = 0;
 
 int Lib_Control_State = 0;
-
+int Lib_Control_Cnt;
 
 
 extern int Lib_Vision_CarDetected;
+extern int Lib_Vision_LedCnt;
+extern int Lib_Vision_LedSize;
 
 
 
@@ -79,16 +81,38 @@ void *Lib_Control(void *Arg)
 					{
 						printf("Detected Car..\n");
 						Lib_Control_State = 1;
+						Lib_Vision_LedCnt = 0;
+						Lib_Control_Cnt = 0;
 					}
 				}
 				break;
 
 			case 1:
-				printf("Wait for LED..\n");		
+				printf("Wait for LED.. %d %d\n",Lib_Vision_LedSize, Lib_Vision_LedCnt);		
+
+				Lib_Control_Cnt++;
+
+				if( Lib_Control_Cnt > (50) )
+				{
+					if( Lib_Vision_LedCnt > 40 )
+					{
+						Lib_Control_State = 2;
+						printf("Left..\n");
+					}
+					else
+					{
+						Lib_Control_State = 2;
+						printf("Go..\n");	
+					}
+				}
+				break;
+
+			case 2:
+				printf("Wait for out of way..\n");
 
 				if( Lib_Vision_CarDetected == FALSE )
 				{
-					Lib_Control_State = 0;
+					Lib_Control_State = 0;	
 				}		
 				break;
 

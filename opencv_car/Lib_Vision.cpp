@@ -50,8 +50,8 @@ clock_t end_point_frame;
 #define _FALSE 0
 #define _TRUE  1
 
-#define BINARY_THRESHOLD		150
-#define RED_THRESHOLD	    	80
+#define BINARY_THRESHOLD		140		// 150
+#define RED_THRESHOLD	    	80 		// 80
 #define LABEL_SIZE_THRESHOLD	800
 
 
@@ -87,8 +87,8 @@ int Yew_Red_Min = 90;
 int Yew_Blue_Max = 100;
 int Yew_Blue_Min = 90;
 
-int Yew_Thre_Max[3] = { 102, 256, 256 };
-int Yew_Thre_Min[3] = { 90 ,   0,   0 };
+int Yew_Thre_Max[3] = { 73, 256, 256 };
+int Yew_Thre_Min[3] = { 53, 160,  89 };
 
 
 
@@ -149,7 +149,8 @@ extern int Lib_Motor_PwmRight;
 
 
 int Lib_Vision_CarDetected = FALSE;
-
+int Lib_Vision_LedCnt = 0;
+int Lib_Vision_LedSize = 0;
 
 CvRect CarDetectRect;
 
@@ -321,6 +322,37 @@ int Lib_Vision_GetCarDetected( CvRect *pCar, CvRect *pArea )
 
 
 
+void Lib_Vision_GetLedCnt( IplImage *pImg, CvRect *pRect )
+{
+	unsigned char *pImgBuf   = (unsigned char *)pImg->imageData;
+	int yOff;
+	int width;
+	int height;	
+	int x;
+	int y;
+	int Cnt = 0;
+
+	width  = pImg->width;
+	height = pImg->height;
+	
+	
+	for(y=0; y<height; y++)
+	{
+		//if( y < (height/2) ) continue;
+
+		yOff   = y * width;
+		for(x=0; x<width; x++)
+		{
+			if( pImgBuf[yOff + x] == 255 ) Cnt++;
+		}
+	}	
+
+	Lib_Vision_LedSize = Cnt;
+	if( Cnt > 5 ) Lib_Vision_LedCnt++;
+}
+
+
+
 /*---------------------------------------------------------------------------
 	TITLE : Tracking_Color
 	WORK  :
@@ -407,7 +439,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
     
 	
 	int DetectX 		= IMG_WIDTH/2;
-	int DetectY 		= IMG_HEIGHT/2 + 150/2;
+	int DetectY 		= IMG_HEIGHT/2;
 	int DetectWidth		= 200;
 	int DetectHeight	= 100/2;
 
@@ -578,6 +610,8 @@ int Tracking_Color( THREAD_OBJ *pArg )
 					cvPoint(obj_box.x+obj_box.width, obj_box.y+obj_box.height),
                     CV_RGB(0, 0, 255), 2);
 
+
+			Lib_Vision_GetLedCnt( imgObj_Bin, &obj_box );
 
 			//sprintf( strLine, "x,y %d %d", imgObj->width, imgObj->height );
 			//cvPutText(frame, strLine, cvPoint(10, 50), &font, cvScalar(0, 0, 255, 0));
