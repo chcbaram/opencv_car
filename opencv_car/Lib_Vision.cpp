@@ -334,21 +334,38 @@ void Lib_Vision_GetLedCnt( IplImage *pImg, CvRect *pRect )
 
 	width  = pImg->width;
 	height = pImg->height;
-	
-	
-	for(y=0; y<height; y++)
+
+
+
+	Cnt = 0;
+
+/*
+	for(y=5; y<height; y++)
 	{
 		//if( y < (height/2) ) continue;
 
-		yOff   = y * width;
-		for(x=0; x<width; x++)
+		yOff   = y * pImg->width;
+		for(x=5; x<width; x++)
 		{
 			if( pImgBuf[yOff + x] == 255 ) Cnt++;
+			pImgBuf[yOff+x] = 255;
 		}
 	}	
+*/
 
-	Lib_Vision_LedSize = Cnt;
-	if( Cnt > 5 ) Lib_Vision_LedCnt++;
+	for( int i=0; i<width*height*1; i++ )
+	{
+
+			if( pImgBuf[i] == 255 ) Cnt++;
+			//pImgBuf[yOff+x] = 255;
+				
+	}
+	
+	if( Cnt > 5 ) 
+	{
+		Lib_Vision_LedSize = pImg->width;
+		Lib_Vision_LedCnt++;
+	}
 }
 
 
@@ -550,13 +567,7 @@ int Tracking_Color( THREAD_OBJ *pArg )
 #endif
 		if( DetectObj == _TRUE )
 		{
-			//cvCircle(frame, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 0, 0), 2);
-			cvCircle(imgBin, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 255, 255), 2);
-			cvCircle(imgRed, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 255, 255), 2);
-			//cvCircle(IplImage_depth, cvPoint(cvRound(cX*1.06), cvRound(cY*1.04)), 20, CV_RGB(255, 255, 255), 2);
 
-			sprintf( strLine, "%d mm", ObjDistance );
-			cvPutText(frame, strLine, cvPoint(220, 20), &font, cvScalar(0, 0, 255, 0));
 
 			//-- Draw object
 			obj_box = VLib_GetOpejectRect( imgLabel, cX, cY );
@@ -590,6 +601,11 @@ int Tracking_Color( THREAD_OBJ *pArg )
 			imgObj_Green = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
 			imgObj_Blue  = cvCreateImage(cvSize(obj_box.width*2,obj_box.height*2), 8, 1);
 
+			for( int k=0; k<imgObj_Bin->width*imgObj_Bin->height; k++ )
+			{
+				imgObj_Bin->imageData[k] = 0;		
+			}
+
 
 			// YCrCb 형태로 변경
 			cvCvtColor(imgObj, imgObj_Image, CV_RGB2HSV);
@@ -598,8 +614,48 @@ int Tracking_Color( THREAD_OBJ *pArg )
 				cvScalar(Yew_Thre_Min[0], Yew_Thre_Min[1], Yew_Thre_Min[2]),
 				cvScalar(Yew_Thre_Max[0], Yew_Thre_Max[1], Yew_Thre_Max[2]), imgObj_Bin);
 
+			Lib_Vision_GetLedCnt( imgObj_Bin, &obj_box );
+			/*
+			cvResize(imgObj_Bin, imgObj_Blue);
+			cvResize(imgObj_Blue, imgObj_Bin);
 
 
+			int x;
+			int y;
+			int Cnt;
+			int width;
+			int height;
+			int yOff;
+
+			height = imgObj_Bin->height;
+			width = imgObj_Bin->width;
+
+			Cnt = 0;
+			for(y=5; y<height; y++)
+			{
+				//if( y < (height/2) ) continue;
+
+				yOff   = y * imgObj_Bin->width;
+				for(x=5; x<width; x++)
+				{
+					if( imgObj_Bin->imageData[yOff + x] == 255 )
+					{
+						Cnt++;
+						//imgObj_Bin->imageData[yOff+x] = 0;
+					}
+					//else
+					imgObj_Bin->imageData[yOff+x] = 255;
+				}
+			}	
+
+			
+			if( Cnt > 5 ) 
+			{
+				Lib_Vision_LedSize = Cnt;
+				Lib_Vision_LedCnt++;
+			}
+
+			*/
 			cvRectangle(frame, 
 					cvPoint(obj_box.x, obj_box.y), 
 					cvPoint(obj_box.x+obj_box.width, obj_box.y+obj_box.height),
@@ -611,10 +667,24 @@ int Tracking_Color( THREAD_OBJ *pArg )
                     CV_RGB(0, 0, 255), 2);
 
 
-			Lib_Vision_GetLedCnt( imgObj_Bin, &obj_box );
+			
+
+			//cvRectangle(imgObj_Bin, 
+			//cvPoint(5, imgObj_Bin->height-30), 
+			//cvPoint(imgObj_Bin->width-5, imgObj_Bin->height),
+            //        CV_RGB(255, 255, 255), 2);
 
 			//sprintf( strLine, "x,y %d %d", imgObj->width, imgObj->height );
 			//cvPutText(frame, strLine, cvPoint(10, 50), &font, cvScalar(0, 0, 255, 0));
+
+			//cvCircle(frame, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 0, 0), 2);
+			cvCircle(imgBin, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 255, 255), 2);
+			cvCircle(imgRed, cvPoint(cvRound(cX), cvRound(cY)), 20, CV_RGB(255, 255, 255), 2);
+			//cvCircle(IplImage_depth, cvPoint(cvRound(cX*1.06), cvRound(cY*1.04)), 20, CV_RGB(255, 255, 255), 2);
+
+			sprintf( strLine, "%d mm", ObjDistance );
+			cvPutText(frame, strLine, cvPoint(220, 20), &font, cvScalar(0, 0, 255, 0));
+
 		}
 		else
 		{

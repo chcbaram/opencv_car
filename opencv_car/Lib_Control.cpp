@@ -43,15 +43,32 @@ void Lib_Control_Uart_Rxd_Func( char Data )
 void *Lib_Control(void *Arg)
 {
 	int  Uart_Handle_Ptr;
+	int  Uart_Handle_Ptr_2;
 
 	THREAD_OBJ *pArg = (THREAD_OBJ *)Arg;
 
 
 	#if USE_SERIAL == 1
 	//-- 시리얼 통신 초기화 
-	Uart_Handle_Ptr = Uart_Open( 0, "/dev/rfcomm1", BAUD_115200 );
+	Uart_Handle_Ptr = Uart_Open( 0, "/dev/rfcomm0", BAUD_115200 );
 
 	if( Uart_Handle_Ptr < 0 )
+	{
+		printf("Uart Open Failed \n");
+		pArg->Thread_Ret = 1;
+		return (void *)&(pArg->Thread_Ret);	
+	}
+
+	//Uart_Sig_Init( Uart_Handle_Ptr );
+	//Uart_Sig_Func_Init( Uart_Handle_Ptr, Lib_Control_Uart_Rxd_Func );
+	#endif
+
+
+	#if USE_SERIAL_SIGANL == 1
+	//-- 시리얼 통신 초기화 
+	Uart_Handle_Ptr_2 = Uart_Open( 1, "/dev/ttyUSB0", BAUD_115200 );
+
+	if( Uart_Handle_Ptr_2 < 0 )
 	{
 		printf("Uart Open Failed \n");
 		pArg->Thread_Ret = 1;
@@ -104,6 +121,9 @@ void *Lib_Control(void *Arg)
 						#if USE_SERIAL == 1
 						Uart_Print(0, "B");
 						#endif
+						#if USE_SERIAL_SIGANL == 1
+						Uart_Print(1, "B");
+						#endif						
 					}
 					else
 					{
@@ -112,6 +132,10 @@ void *Lib_Control(void *Arg)
 						#if USE_SERIAL == 1
 						Uart_Print(0, "A");
 						#endif	
+						printf("Go..\n");
+						#if USE_SERIAL_SIGANL == 1
+						Uart_Print(1, "A");
+						#endif							
 					}
 				}
 				break;
